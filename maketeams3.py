@@ -188,6 +188,78 @@ def get_player_data(players):
     # put player data into Player objects
 
 
+def process_friends_and_avoid(players):
+    def convert_name_list(string_of_names, players):
+        pattern = r"([^-_a-zA-Z0-9]|^){0}([^-_a-zA-Z0-9]|$)"
+        return [player for player in players
+                if re.search(pattern.format(player.name), string_of_names, flags=re.I)]
+
+    for player in players:
+        filtered_players = [p for p in players if p.board != player.board]
+        player.friends = convert_name_list(player.friends, filtered_players)
+        player.avoid = convert_name_list(player.avoid, filtered_players)
+
+
+def old_process_friends_and_avoid(players):
+    # convert players' friends and avoid from name to references of the friend's/avoid's player object
+    for player in players:
+        if player.friends or player.avoid:
+            # separate friends requests into individual usernames - split on any number of
+            # non-(alphanumeric, hyphen or underscore)
+            player.friends = re.split("[^-_a-zA-Z0-9]+", player.friends)
+            # separate avoid requests into individual usernames - split on any number of
+            # non-(alphanumeric, hyphen or underscore)
+            player.avoid = re.split("[^-_a-zA-Z0-9]+", player.avoid)
+
+        else:
+            player.friends = []
+            player.avoid = []
+    for player in players:
+        temp_friends = []
+        for friend in player.friends:
+            for potentialfriend in players:
+                # prevent duplicated friend error
+                if friend.lower() == potentialfriend.name.lower() and potentialfriend not in temp_friends:
+                    temp_friends.append(potentialfriend)
+        player.friends = temp_friends
+
+        temp_avoid = []
+        for avoid in player.avoid:
+            for potentialavoid in players:
+                # prevent duplicated friend error
+                if avoid.lower() == potentialavoid.name.lower() and potentialavoid not in temp_avoid:
+                    temp_avoid.append(potentialavoid)
+        player.avoid = temp_avoid
+
+    for player in players:
+        for friend in player.friends:
+            if friend.board == player.board:
+                player.friends.remove(friend)
+
+
+def prepare_random_draft(players_split):
+    for board in players_split:
+        random.shuffle(board)
+
+
+def prepare_snake_draft(players_split):
+    for board in players_split[1::2]:
+        board.reverse()
+
+
+def initialize_teams(players_split, n_teams, n_boards):
+    prepare_random_draft(players_split)
+
+    teams = []
+    for n in range(n_teams):
+        teams.append(Team(n_boards))
+    for n, board in enumerate(players_split):
+        for team, player in enumerate(board):
+            teams[team].changeBoard(n, player)
+
+    return teams
+
+
 def make_league(playerdata, boards, balance):
 
     players = []
@@ -230,26 +302,11 @@ def make_league(playerdata, boards, balance):
         for player in board:
             player.board = n
 
-    def convert_name_list(string_of_names, players):
-        pattern = r"([^-_a-zA-Z0-9]|^){0}([^-_a-zA-Z0-9]|$)"
-        return [player for player in players
-                if re.search(pattern.format(player.name), string_of_names, flags=re.I)]
-
-    for player in players:
-        filtered_players = [p for p in players if p.board != player.board]
-        player.friends = convert_name_list(player.friends, filtered_players)
-        player.avoid = convert_name_list(player.avoid, filtered_players)
+    process_friends_and_avoid(players)
 
     # randomly shuffle players
-    for board in players_split:
-        random.shuffle(board)
 
-    teams = []
-    for n in range(num_teams):
-        teams.append(Team(boards))
-    for n, board in enumerate(players_split):
-        for team, player in enumerate(board):
-            teams[team].changeBoard(n, player)
+    teams = initialize_teams(players_split)
 
     updatePref(players, teams)
     updateSort(players, teams)
