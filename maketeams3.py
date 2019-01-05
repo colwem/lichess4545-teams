@@ -276,7 +276,6 @@ def make_league(playerdata, boards, balance):
         else:
             pass
             # print("{0} skipped".format(player['name']))
-    players.sort(key=lambda player: player.rating, reverse=True)
 
     # Split into those that want to be alternates vs those that do not.
     alternates = [p for p in players if p.alt]
