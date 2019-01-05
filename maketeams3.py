@@ -304,9 +304,10 @@ def make_league(playerdata, boards, balance):
 
     process_friends_and_avoid(players)
 
-    # randomly shuffle players
+    # n_friends = sum([len(player.friends) for player in players])
+    # n_avoid = sum([len(player.avoid) for player in players])
 
-    teams = initialize_teams(players_split)
+    teams = initialize_teams(players_split, num_teams, boards)
 
     updatePref(players, teams)
     updateSort(players, teams)
