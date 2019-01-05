@@ -196,8 +196,10 @@ def process_friends_and_avoid(players):
 
     for player in players:
         filtered_players = [p for p in players if p.board != player.board]
-        player.friends = convert_name_list(player.friends, filtered_players)
-        player.avoid = convert_name_list(player.avoid, filtered_players)
+        player.friends = sorted(convert_name_list(player.friends, filtered_players),
+                                key=lambda p: p.name)
+        player.avoid = sorted(convert_name_list(player.avoid, filtered_players),
+                              key=lambda p: p.name)
 
 
 def old_process_friends_and_avoid(players):
@@ -232,9 +234,14 @@ def old_process_friends_and_avoid(players):
         player.avoid = temp_avoid
 
     for player in players:
-        for friend in player.friends:
-            if friend.board == player.board:
-                player.friends.remove(friend)
+        player.friends = sorted([friend for
+                                 friend in
+                                 player.friends if friend.board != player.board],
+                                key=lambda p: p.name)
+        player.avoid = sorted([avoid for
+                               avoid in
+                               player.avoid if avoid.board != player.board],
+                              key=lambda p: p.name)
 
 
 def prepare_random_draft(players_split):
