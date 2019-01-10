@@ -255,7 +255,7 @@ def prepare_snake_draft(players_split):
 
 
 def initialize_teams(players_split, n_teams, n_boards):
-    prepare_random_draft(players_split)
+    prepare_snake_draft(players_split)
 
     teams = []
     for n in range(n_teams):
@@ -267,7 +267,7 @@ def initialize_teams(players_split, n_teams, n_boards):
     return teams
 
 
-def make_league(playerdata, boards, balance):
+def make_league(playerdata, boards, balance, fun):
 
     players = []
     for player in playerdata:
@@ -308,7 +308,7 @@ def make_league(playerdata, boards, balance):
         for player in board:
             player.board = n
 
-    process_friends_and_avoid(players)
+    fun(players)
 
     # n_friends = sum([len(player.friends) for player in players])
     # n_avoid = sum([len(player.avoid) for player in players])
